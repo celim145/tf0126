@@ -1,0 +1,71 @@
+# =============================================================
+# TF05 - Configuração de Alertas
+# Canais de notificação e regras de disparo
+# =============================================================
+
+alerts:
+
+  # ── Canal: Email via SMTP ──────────────────────────────────
+  email:
+    enabled: false                       # Habilitar em produção
+    smtp_server: smtp.gmail.com
+    smtp_port: 587
+    use_tls: true
+    username: alerts@example.com         # Substituir pela conta real
+    password: "app-password"             # Usar variável de ambiente: ${SMTP_PASS}
+    from_name: "TF05 Monitor"
+    recipients:
+      - admin@example.com
+      - devops@example.com
+    subject_prefix: "[TF05 Monitor]"
+    send_on:
+      - critical
+      - warning
+    cooldown: 15m                        # Mínimo entre alertas do mesmo serviço
+
+  # ── Canal: Webhook (Slack / Discord / Teams) ───────────────
+  webhook:
+    enabled: false                       # Habilitar quando URL configurada
+    url: "${ALERT_WEBHOOK_URL}"          # Definir na variável de ambiente
+    method: POST
+    timeout: 10s
+    retry_on_fail: true
+    retries: 3
+    send_on:
+      - critical
+      - warning
+      - resolved
+    include_fields:
+      - service
+      - level
+      - title
+      - description
+      - timestamp
+
+  # ── Canal: Log local ──────────────────────────────────────
+  log:
+    enabled: true
+    file: "logs/alerts.log"
+    format: "[{timestamp}] [{level}] {service}: {title} — {description}"
+    send_on:
+      - critical
+      - warning
+      - info
+      - resolved
+
+# ── Regras de supressão ────────────────────────────────────
+suppression:
+  # Não alertar para falhas transitórias (menos de N falhas consecutivas)
+  min_failures_before_alert: 2
+  # Cooldown entre alertas repetidos do mesmo serviço
+  cooldown_minutes: 10
+  # Silenciar em janela de manutenção (formato: HH:MM-HH:MM)
+  maintenance_window: null   # Exemplo: "02:00-04:00"
+
+# ── Escalação ─────────────────────────────────────────────
+escalation:
+  # Após X minutos sem resolução, escalar
+  escalate_after_minutes: 30
+  escalate_to:
+    - email
+    - webhook

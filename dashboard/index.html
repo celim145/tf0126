@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TF05 — Dashboard de Monitoramento</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=DM+Sans:wght@300;400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/dashboard.css">
+</head>
+<body>
+    <div class="scanline"></div>
+
+    <aside class="sidebar">
+        <div class="brand">
+            <span class="brand-icon">⬡</span>
+            <span class="brand-name">MONITOR</span>
+        </div>
+        <nav class="nav">
+            <a href="#" class="nav-item active" data-section="overview">
+                <span class="nav-icon">◈</span> Overview
+            </a>
+            <a href="#" class="nav-item" data-section="services">
+                <span class="nav-icon">◉</span> Serviços
+            </a>
+            <a href="#" class="nav-item" data-section="alerts">
+                <span class="nav-icon">◬</span> Alertas
+            </a>
+            <a href="#" class="nav-item" data-section="metrics">
+                <span class="nav-icon">◧</span> Métricas
+            </a>
+        </nav>
+        <div class="sidebar-footer">
+            <div class="system-time" id="system-time">--:--:--</div>
+            <div class="version">TF05 v1.0</div>
+        </div>
+    </aside>
+
+    <main class="main">
+        <header class="topbar">
+            <div class="topbar-title">
+                <h1>Dashboard de Monitoramento</h1>
+                <span class="env-badge">PRODUÇÃO</span>
+            </div>
+            <div class="topbar-actions">
+                <div class="refresh-indicator" id="refresh-indicator">
+                    <span class="pulse"></span> Auto-refresh: <span id="countdown">30</span>s
+                </div>
+                <button class="btn-refresh" id="btn-refresh">↻ Atualizar</button>
+            </div>
+        </header>
+
+        <!-- SECTION: Overview -->
+        <section class="section active" id="section-overview">
+            <div class="status-banner" id="overall-status-banner">
+                <div class="status-icon" id="overall-icon">●</div>
+                <div class="status-info">
+                    <div class="status-label">STATUS GERAL DO SISTEMA</div>
+                    <div class="status-value" id="overall-status-text">Verificando...</div>
+                </div>
+                <div class="status-meta">
+                    <span>Última verificação: <span id="last-check">--</span></span>
+                </div>
+            </div>
+
+            <div class="kpi-grid">
+                <div class="kpi-card">
+                    <div class="kpi-label">Serviços Ativos</div>
+                    <div class="kpi-value" id="kpi-active">--</div>
+                    <div class="kpi-sub">de <span id="kpi-total">4</span> totais</div>
+                </div>
+                <div class="kpi-card">
+                    <div class="kpi-label">Uptime Médio</div>
+                    <div class="kpi-value" id="kpi-uptime">--%</div>
+                    <div class="kpi-sub">últimas 24h</div>
+                </div>
+                <div class="kpi-card">
+                    <div class="kpi-label">Tempo Médio de Resposta</div>
+                    <div class="kpi-value" id="kpi-response">--ms</div>
+                    <div class="kpi-sub">média global</div>
+                </div>
+                <div class="kpi-card">
+                    <div class="kpi-label">Alertas Ativos</div>
+                    <div class="kpi-value alert-val" id="kpi-alerts">--</div>
+                    <div class="kpi-sub">nas últimas 24h</div>
+                </div>
+            </div>
+
+            <div class="charts-row">
+                <div class="chart-card wide">
+                    <div class="chart-header">
+                        <h3>Response Time — Últimas 24h</h3>
+                        <div class="legend">
+                            <span class="leg frontend">Frontend</span>
+                            <span class="leg api">API</span>
+                            <span class="leg db">Database</span>
+                        </div>
+                    </div>
+                    <canvas id="responseTimeChart" height="120"></canvas>
+                </div>
+                <div class="chart-card">
+                    <div class="chart-header"><h3>Uptime por Serviço</h3></div>
+                    <canvas id="uptimeChart" height="200"></canvas>
+                </div>
+            </div>
+        </section>
+
+        <!-- SECTION: Services -->
+        <section class="section" id="section-services">
+            <div class="section-header">
+                <h2>Status dos Serviços</h2>
+            </div>
+            <div class="services-grid" id="services-grid">
+                <!-- Cards gerados via JS -->
+            </div>
+        </section>
+
+        <!-- SECTION: Alerts -->
+        <section class="section" id="section-alerts">
+            <div class="section-header">
+                <h2>Alertas Recentes</h2>
+                <button class="btn-secondary" id="btn-clear-alerts">Limpar</button>
+            </div>
+            <div class="alerts-list" id="alerts-list">
+                <!-- Alertas gerados via JS -->
+            </div>
+        </section>
+
+        <!-- SECTION: Metrics -->
+        <section class="section" id="section-metrics">
+            <div class="section-header">
+                <h2>Métricas Detalhadas</h2>
+            </div>
+            <div class="metrics-table-wrap">
+                <table class="metrics-table">
+                    <thead>
+                        <tr>
+                            <th>Serviço</th>
+                            <th>Status</th>
+                            <th>Response Time</th>
+                            <th>Uptime</th>
+                            <th>Checks OK</th>
+                            <th>Checks Falhos</th>
+                            <th>Último Check</th>
+                        </tr>
+                    </thead>
+                    <tbody id="metrics-tbody">
+                        <tr><td colspan="7" class="loading-row">Carregando métricas...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+    </main>
+
+    <script src="js/dashboard.js"></script>
+    <script src="js/charts.js"></script>
+</body>
+</html>

@@ -1,0 +1,72 @@
+# =============================================================
+# TF05 - Thresholds de Monitoramento
+# Limites para classificação de alertas por nível
+# =============================================================
+
+thresholds:
+
+  # ── Tempo de Resposta HTTP ─────────────────────────────────
+  response_time:
+    unit: milliseconds
+    healthy:  "<= 500"
+    warning:  "501 - 1000"
+    critical: "> 1000"
+
+  # ── Uptime Mínimo (%) ──────────────────────────────────────
+  uptime:
+    unit: percent
+    healthy:  ">= 99"
+    warning:  "95 - 98.99"
+    critical: "< 95"
+
+  # ── Taxa de Erros HTTP ────────────────────────────────────
+  error_rate:
+    unit: percent
+    healthy:  "< 1"
+    warning:  "1 - 5"
+    critical: "> 5"
+
+  # ── Uso de CPU (sistema) ──────────────────────────────────
+  cpu_usage:
+    unit: percent
+    healthy:  "< 60"
+    warning:  "60 - 85"
+    critical: "> 85"
+
+  # ── Uso de Memória ────────────────────────────────────────
+  memory_usage:
+    unit: percent
+    healthy:  "< 70"
+    warning:  "70 - 90"
+    critical: "> 90"
+
+  # ── Espaço em Disco ───────────────────────────────────────
+  disk_usage:
+    unit: percent
+    healthy:  "< 70"
+    warning:  "70 - 85"
+    critical: "> 85"
+
+  # ── Conexões Ativas no Banco ──────────────────────────────
+  db_connections:
+    unit: count
+    healthy:  "< 50"
+    warning:  "50 - 80"
+    critical: "> 80"
+    max_connections: 100
+
+  # ── Latência de Query no Banco ────────────────────────────
+  db_query_time:
+    unit: milliseconds
+    healthy:  "< 200"
+    warning:  "200 - 1000"
+    critical: "> 1000"
+
+# ── Configurações de avaliação ─────────────────────────────
+evaluation:
+  # Janela de tempo para calcular médias
+  window: 5m
+  # Quantas amostras mínimas antes de avaliar threshold
+  min_samples: 3
+  # Persistir no banco apenas se diferente do estado anterior
+  persist_on_change: true

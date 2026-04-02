@@ -1,0 +1,70 @@
+# =============================================================
+# TF05 - Configuração de Healthchecks
+# Define verificações por serviço, intervalos e thresholds
+# =============================================================
+
+healthchecks:
+
+  web-frontend:
+    type: http
+    url: http://dashboard:80/health
+    interval: 30s
+    timeout: 10s
+    retries: 3
+    expected_status: 200
+    expected_body: "OK"
+    description: "Dashboard de monitoramento (Nginx)"
+
+  api-backend:
+    type: http
+    url: http://api:5000/health
+    interval: 15s
+    timeout: 5s
+    retries: 2
+    expected_status: 200
+    headers:
+      Content-Type: "application/json"
+    description: "API Flask de métricas e healthchecks"
+
+  api-metrics:
+    type: http
+    url: http://api:5000/metrics
+    interval: 60s
+    timeout: 10s
+    retries: 2
+    expected_status: 200
+    description: "Endpoint de métricas da API"
+
+  database:
+    type: database
+    connection: "postgresql://monitor:monitor123@database:5432/monitoring"
+    query: "SELECT 1"
+    interval: 60s
+    timeout: 30s
+    retries: 5
+    description: "Banco de dados PostgreSQL"
+    thresholds:
+      response_time:
+        warning: 500ms
+        critical: 2000ms
+
+  redis-cache:
+    type: tcp
+    host: redis
+    port: 6379
+    interval: 30s
+    timeout: 5s
+    retries: 3
+    description: "Cache Redis"
+    thresholds:
+      response_time:
+        warning: 100ms
+        critical: 500ms
+
+# Configurações globais
+global:
+  default_interval: 30s
+  default_timeout: 10s
+  default_retries: 3
+  log_level: INFO
+  history_retention: 7d

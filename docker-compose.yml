@@ -1,0 +1,89 @@
+version: '3.8'
+
+services:
+  dashboard:
+    build: ./dashboard
+    container_name: tf05-dashboard
+    ports:
+      - "3000:80"
+    depends_on:
+      - api
+    networks:
+      - monitoring
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:80/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+
+  api:
+    build: ./api
+    container_name: tf05-api
+    ports:
+      - "5000:5000"
+    environment:
+      - DATABASE_URL=postgresql://monitor:monitor123@database:5432/monitoring
+      - REDIS_URL=redis://redis:6379
+      - SECRET_KEY=tf05-secret-key-2026
+      - ALERT_WEBHOOK_URL=${ALERT_WEBHOOK_URL:-}
+      - SMTP_SERVER=${SMTP_SERVER:-smtp.gmail.com}
+      - SMTP_USER=${SMTP_USER:-}
+      - SMTP_PASS=${SMTP_PASS:-}
+    depends_on:
+      database:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - monitoring
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5000/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 20s
+    volumes:
+      - api-logs:/app/logs
+
+  database:
+    image: postgres:15-alpine
+    container_name: tf05-database
+    environment:
+      - POSTGRES_DB=monitoring
+      - POSTGRES_USER=monitor
+      - POSTGRES_PASSWORD=monitor123
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+      - ./database/init.sql:/docker-entrypoint-initdb.d/init.sql
+    networks:
+      - monitoring
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U monitor -d monitoring"]
+      interval: 60s
+      timeout: 30s
+      retries: 5
+      start_period: 15s
+
+  redis:
+    image: redis:7-alpine
+    container_name: tf05-redis
+    networks:
+      - monitoring
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+
+networks:
+  monitoring:
+    driver: bridge
+
+volumes:
+  postgres-data:
+  api-logs:
